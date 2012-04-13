@@ -134,7 +134,6 @@ socket.on('connection', function(con){
 function getTserverByRR(key, nserverName){
 	var i = 0;
 	var name = {};
-<<<<<<< HEAD
 	
 	if(tserver_idx[key]){
 		console.log('-> ' + tserver_idx[key]);
@@ -167,35 +166,7 @@ function getTserverByRR(key, nserverName){
 	
 	console.log('return -> ');
 	console.dir(name);
-	
-=======
 
-	if(server_idx[key]){
-		console.log('-> ' + server_idx[key]);
-		i = server_idx[key];
-		if(i >= servers[key].length){
-			i = 0;
-		}
-	} else {
-		console.log('-> ' + server_idx[key]);
-		server_idx[key] = 0;
-		i=0;
-	}
-
-	if(servers[key]) {
-        console.dir(servers[key][i]);
-        server_idx[key] = i + 1;
-        console.log('idx -> ');
-        console.dir(server_idx);
-
-        name = servers[key][i];
-        name['service'] = key;
-	}
-
-    console.log('return -> ');
-    console.dir(name);
-
->>>>>>> 8985c450e0a18795974abbfe8ec4703cd78cfd46
 	return name;
 }
     
