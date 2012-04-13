@@ -4,8 +4,9 @@ var express = require('express')
 
 var app = express.createServer()
 	, socket = io.listen(app)
-	, servers = {}
-	, server_idx = {};
+	, server_map = {}
+	, tservers = {}
+	, tserver_idx = {};
 
 socket.configure(function(){
 	socket.set('log level', 4);
@@ -34,20 +35,28 @@ app.get('/', function (req, res) {
 socket.on('connection', function(con){
 	console.log("connection : " + con.id);
 	
-	con.on('getServerByRR', function(key, fn){
-		console.log('con getServerByRR -> ');
-		console.dir(key);
-
-		fn(getServerByRR(key));
+	con.on('getServerMap', function(fn){
+		console.log('con getServerMap -> ');
+		console.dir(server_map);
+		
+		fn(server_map);
 		
 	});
 	
-	con.on('getServerListByRR', function(fn){
-		console.log('con getServerListByRR -> ');
+	con.on('getTserverByRR', function(key, fn){
+		console.log('con getTserverByRR -> ');
+		console.dir(key);
+		
+		fn(getTserverByRR(key, con.nserver));
+		
+	});
+	
+	con.on('getTserverListByRR', function(fn){
+		console.log('con getTserverListByRR -> ');
 		var i = 0;
 		var result = [];
-		for(key in servers){
-			result.push(getServerByRR(key));
+		for(key in tservers){
+			result.push(getTserverByRR(key, con.nserver));
 		}
 		console.log('result -> ');
 		console.dir(result);
@@ -55,73 +64,112 @@ socket.on('connection', function(con){
 		fn(result);
 	});
 	
-	con.on('join', function(msg){
-		console.log('new join ->');
+	con.on('tjoin', function(msg){
+		console.log('new tjoin ->');
 		console.dir(msg);
 		for(key in msg){
-			if(servers[key]){
-				servers[key].push(msg[key]);
+			if(tservers[key]){
+				tservers[key].push(msg[key]);
 			}else{
-				servers[key] = [];
-				servers[key].push(msg[key]);
+				tservers[key] = [];
+				tservers[key].push(msg[key]);
 			}
-			console.log('length : ' + servers[key].length);
-			//server_idx[key] = servers[key].length;
-			con.serverName = msg[key].serverName;
+			console.log('length : ' + tservers[key].length);
+			//server_idx[key] = tservers[key].length;
+			con.tserverName = msg[key].serverName;
 		}
-		console.log('servers - >');
-		console.dir(servers);
-//		console.log('server_idx - >');
-//		console.dir(server_idx);
-		console.log('connect - > ' + con.serverName);
+		console.log('tservers - >');
+		console.dir(tservers);
+//		console.log('tserver_idx - >');
+//		console.dir(tserver_idx);
+		console.log('connect - > ' + con.tserverName);
+	});
+	
+	con.on('njoin', function(msg){
+		console.log('new njoin ->');
+		console.dir(msg);
+		for(key in msg){
+			if(nservers[key]){
+				nservers[key].push(msg[key]);
+			}else{
+				nservers[key] = [];
+				nservers[key].push(msg[key]);
+			}
+			console.log('length : ' + nservers[key].length);
+			//server_idx[key] = tservers[key].length;
+			con.nserverName = key;
+		}
+		console.log('nservers - >');
+		console.dir(nservers);
+//		console.log('nserver_idx - >');
+//		console.dir(nserver_idx);
+		console.log('connect - > ' + con.nserverName);
 	});
 	
 	con.on('disconnect', function(){
-		if(!con.serverName) return;
+		if(!con.tserverName) return;
 		
-		for(key in servers){
-			for(var i=0; i < servers[key].length; i++){
-				console.log('-> ' + servers[key][i].serverName);
+		for(key in tservers){
+			for(var i=0; i < tservers[key].length; i++){
+				console.log('-> ' + tservers[key][i].serverName);
 				
-				if(servers[key][i].serverName == con.serverName){
-					console.log('del -> ' + servers[key][i]);
-					servers[key].splice(i, 1);
-//					server_idx[key] = servers[key].length;
+				if(tservers[key][i].serverName == con.tserverName){
+					console.log('del -> ' + tservers[key][i]);
+					tservers[key].splice(i, 1);
+//					tserver_idx[key] = tservers[key].length;
 				}
 			}
 		}
 		
-		console.log('servers - >');
-		console.dir(servers);
+		console.log('tservers - >');
+		console.dir(tservers);
 //		console.log('server_idx - >');
 //		console.dir(server_idx);
-		console.log("disconnect : " + con.serverName);
+		console.log("disconnect : " + con.tserverName);
 		
-		con.broadcast.emit('announcement', {server: con.serverName, action: "disconnected"});
+		con.broadcast.emit('announcement', {tserver: con.tserverName, action: "disconnected"});
 	})
 });
 
-function getServerByRR(key){
+function getTserverByRR(key, nserverName){
 	var i = 0;
-	if(server_idx[key]){
-		console.log('-> ' + server_idx[key]);
-		i = server_idx[key];
-		if(i >= servers[key].length){
+	var name = {};
+	
+	if(tserver_idx[key]){
+		console.log('-> ' + tserver_idx[key]);
+		i = tserver_idx[key];
+		if(i >= tservers[key].length){
 			i = 0;
 		}
-	}else{
-		console.log('-> ' + server_idx[key]);
-		server_idx[key] = 0;
+	} else {
+		console.log('-> ' + tserver_idx[key]);
+		tserver_idx[key] = 0;
 		i=0;
 	}
+	
+	if(servers[key]) {
+		console.dir(tservers[key][i]);
+		tserver_idx[key] = i + 1;
+		console.log('idx -> ');
+		console.dir(tserver_idx);
+		
+		name = servers[key][i];
+		name['service'] = key;
+	}
+	
+	if(server_map[nserverName]){
+		server_map[nserverName].push(name);
+	}else{
+		server_map[nserverName] = [];
+		server_map[nserverName].push(name);
+	}
+	
 	console.log('return -> ');
-	console.dir(servers[key][i]);
-	server_idx[key] = i + 1;
-	console.log('idx -> ');
-	console.dir(server_idx);
-	return servers[key][i];
+	console.dir(name);
+	
+	return name;
 }
     
-app.listen(8000);
+app.listen(8001);
 
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
