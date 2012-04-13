@@ -3,7 +3,7 @@ html
         title Insert title here
         script(src="/socket.io/socket.io.js")
         script(type='text/javascript')
-            var conn = io.connect('http://localhost:8000');
+            var conn = io.connect('http://localhost:8001');
             function message(obj){
                 console.log(obj);
                 var el = document.createElement('p');
@@ -11,30 +11,49 @@ html
                 document.getElementById('chat').appendChild(el);
                 document.getElementById('chat').scrollTop = 1000000;
             };
-            function join(){
-                var serverName = document.getElementById('serverName').value
-                    ,serviceName = document.getElementById('serviceName').value
+            function tjoin(){
+                var serverName = document.getElementById('tserver').value
+                    ,serviceName = document.getElementById('tservice').value
                     ,port = document.getElementById('port').value;
                 var msg = {};
                 msg[serviceName] = {'serverName': serverName, 'port': port };
-                conn.emit('join', msg);
+                conn.emit('tjoin', msg);
             };
-            function getServerByRR(){
+            function njoin(){
+                var serverName = document.getElementById('nserver').value
+                    ,serviceName = document.getElementById('nservice').value;
+                var msg = {};
+                msg[serverName] = {'serviceName': serviceName};
+                conn.emit('njoin', msg);
+            };
+            function getTserverByRR(){
                 var service = document.getElementById('service').value;
-                conn.emit('getServerByRR', service, function(data){
+                conn.emit('getTserverByRR', service, function(data){
                     console.log(data);
                     var el = document.createElement('p');
-                    el.innerHTML = '<em>' + 'server: ' + data[i].serverName + ':' + data[i].port + '</em>';
+                    el.innerHTML = '<em>' + 'service: ' + data.service + ':' + 'server: ' + data.serverName + ':' + data.port + '</em>';
                     document.getElementById('chat').appendChild(el);
                     document.getElementById('chat').scrollTop = 1000000;
                 });
             };
-            function getServerListByRR(){
-                conn.emit('getServerListByRR', function(data){
+            function getTserverListByRR(){
+                conn.emit('getTserverListByRR', function(data){
                     console.log(data);
                     for(var i in data){
                         var el = document.createElement('p');
-                        el.innerHTML = '<em>' + 'server: ' + data[i].serverName + ':' + data[i].port + '</em>';
+                        el.innerHTML = '<em>' + 'service: ' + data[i].service + ':' + 'server: ' + data[i].serverName + ':' + data[i].port + '</em>';
+                        document.getElementById('list').appendChild(el);
+                    }
+                    document.getElementById('list').scrollTop = 1000000;
+                });
+            };
+            
+            function getServerMap(){
+                conn.emit('getServerMap', function(data){
+                    console.log(data);
+                    for(var key in data){
+                        var el = document.createElement('p');
+                        el.innerHTML = '<em>' + 'node : ' + key + ':' + 'service: ' + data[key].service + ', thrift:' + data[key].serverName + '</em>';
                         document.getElementById('list').appendChild(el);
                     }
                     document.getElementById('list').scrollTop = 1000000;
@@ -53,19 +72,26 @@ html
         <div id="list">
         </div>
 
-        form(onsubmit="join(); return false;")
+        form(onsubmit="tjoin(); return false;")
             label serverName 
-                <input id="serverName" type="text">
+                <input id="tserver" type="text">
             label serviceName 
-                <input id="serviceName" type="text">
+                <input id="tservice" type="text">
             label port 
                 <input id="port" type="text">
-            <input type="submit" value="join">
-        form(onsubmit="getServerByRR(); return false;")
+            <input type="submit" value="tjoin">
+        form(onsubmit="njoin(); return false;")
+            label serverName 
+                <input id="nserver" type="text">
+            label serviceName 
+                <input id="nservice" type="text">
+            <input type="submit" value="njoin">
+        form(onsubmit="getTserverByRR(); return false;")
             label serviceName
                 <input id="service" type="text">
             <input type="submit" value="get">
-        form(onsubmit="getServerListByRR(); return false;")
+        form(onsubmit="getTserverListByRR(); return false;")
             label servers
             <input type="submit" value="get">
-            
+        form(onsubmit="getServerMap(); return false;")
+            <input type="submit" value="get">

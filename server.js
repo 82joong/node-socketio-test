@@ -6,6 +6,7 @@ var app = express.createServer()
 	, socket = io.listen(app)
 	, server_map = {}
 	, tservers = {}
+	, nservers = {}
 	, tserver_idx = {};
 
 socket.configure(function(){
@@ -47,7 +48,7 @@ socket.on('connection', function(con){
 		console.log('con getTserverByRR -> ');
 		console.dir(key);
 		
-		fn(getTserverByRR(key, con.nserver));
+		fn(getTserverByRR(key, con.nserverName));
 		
 	});
 	
@@ -56,7 +57,7 @@ socket.on('connection', function(con){
 		var i = 0;
 		var result = [];
 		for(key in tservers){
-			result.push(getTserverByRR(key, con.nserver));
+			result.push(getTserverByRR(key, con.nserverName));
 		}
 		console.log('result -> ');
 		console.dir(result);
@@ -147,13 +148,13 @@ function getTserverByRR(key, nserverName){
 		i=0;
 	}
 	
-	if(servers[key]) {
+	if(tservers[key]) {
 		console.dir(tservers[key][i]);
 		tserver_idx[key] = i + 1;
 		console.log('idx -> ');
 		console.dir(tserver_idx);
 		
-		name = servers[key][i];
+		name = tservers[key][i];
 		name['service'] = key;
 	}
 	
