@@ -17,6 +17,7 @@ html
                     ,port = document.getElementById('port').value;
                 var msg = {};
                 msg[serviceName] = {'serverName': serverName, 'port': port };
+                conn.tserverName = serverName;
                 conn.emit('tjoin', msg);
             };
             function njoin(){
@@ -24,6 +25,7 @@ html
                     ,serviceName = document.getElementById('nservice').value;
                 var msg = {};
                 msg[serverName] = {'serviceName': serviceName};
+                conn.nserverName = serverName;
                 conn.emit('njoin', msg);
             };
             function getTserverByRR(){
@@ -52,9 +54,13 @@ html
                 conn.emit('getServerMap', function(data){
                     console.log(data);
                     for(var key in data){
-                        var el = document.createElement('p');
-                        el.innerHTML = '<em>' + 'node : ' + key + ':' + 'service: ' + data[key].service + ', thrift:' + data[key].serverName + '</em>';
-                        document.getElementById('list').appendChild(el);
+                        for(var i=0; i < data[key].length; i++){
+                            var el = document.createElement('p');
+                            el.innerHTML = '<em>' + 'node : ' + key + ':' 
+                                            + 'service: ' + data[key][i].service 
+                                            + ', thrift:' + data[key][i].serverName + '</em>';
+                            document.getElementById('list').appendChild(el);
+                        }
                     }
                     document.getElementById('list').scrollTop = 1000000;
                 });
@@ -62,9 +68,12 @@ html
             conn.on('announcement', function(obj){
                 console.log(obj);
                 var el = document.createElement('p');
-                el.innerHTML = '<em>' + obj.server + obj.action + '</em>';
+                el.innerHTML = '<em>' + obj.server + ':' + obj.action + '</em>';
                 document.getElementById('chat').appendChild(el);
                 document.getElementById('chat').scrollTop = 1000000;
+                if(obj.action == 'disconnected'){
+                    getTserverListByRR();
+                }
             });
     body
         <div id="chat">
