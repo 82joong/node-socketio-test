@@ -1,3 +1,7 @@
 .settings
 .project
+.idea
+dump.rdb
+nohup.out
 node_modules
+node-socketio-test.iml

@@ -1,9 +1,11 @@
+!DOCTYPE html
 html
     head
-        title Insert title here
+        title Welcome
+        meta name="viewport"
         script(src="/socket.io/socket.io.js")
         script(type='text/javascript')
-            var conn = io.connect('http://localhost:8001');
+            var conn = io.connect('http://localhost:3000');
             function message(obj){
                 console.log(obj);
                 var el = document.createElement('p');
@@ -11,22 +13,19 @@ html
                 document.getElementById('chat').appendChild(el);
                 document.getElementById('chat').scrollTop = 1000000;
             };
-            function tjoin(){
-                var serverName = document.getElementById('tserver').value
-                    ,serviceName = document.getElementById('tservice').value
-                    ,port = document.getElementById('port').value;
-                var msg = {};
-                msg[serviceName] = {'serverName': serverName, 'port': port };
-                conn.tserverName = serverName;
-                conn.emit('tjoin', msg);
+            function create(){
+                conn.emit('create', function(data) {
+                    var el = document.createElement('p');
+                        el.innerHTML = '<em>' + 'created : ' + data.roomNo + '</em>';
+                        document.getElementById('chat').appendChild(el);
+                });
             };
-            function njoin(){
-                var serverName = document.getElementById('nserver').value
-                    ,serviceName = document.getElementById('nservice').value;
+            function join(){
+                var roomNo = document.getElementById('roomNo').value;
                 var msg = {};
-                msg[serverName] = {'serviceName': serviceName};
-                conn.nserverName = serverName;
-                conn.emit('njoin', msg);
+                msg = {'roomNo': roomNo};
+                conn.roomNo = roomNo;
+                conn.emit('join', msg);
             };
             function getTserverByRR(){
                 var service = document.getElementById('service').value;
@@ -81,26 +80,11 @@ html
         <div id="list">
         </div>
 
-        form(onsubmit="tjoin(); return false;")
+        form(onsubmit="create(); return false;")
+            <input type="submit" value="create">
+        form(onsubmit="join(); return false;")
             label serverName 
-                <input id="tserver" type="text">
-            label serviceName 
-                <input id="tservice" type="text">
-            label port 
-                <input id="port" type="text">
-            <input type="submit" value="tjoin">
-        form(onsubmit="njoin(); return false;")
-            label serverName 
-                <input id="nserver" type="text">
-            label serviceName 
-                <input id="nservice" type="text">
-            <input type="submit" value="njoin">
-        form(onsubmit="getTserverByRR(); return false;")
-            label serviceName
-                <input id="service" type="text">
-            <input type="submit" value="get">
-        form(onsubmit="getTserverListByRR(); return false;")
-            label servers
-            <input type="submit" value="get">
-        form(onsubmit="getServerMap(); return false;")
+                <input id="roomNo" type="text">
+            <input type="submit" value="join">
+        form(onsubmit="list(); return false;")
             <input type="submit" value="get">
