@@ -1,7 +1,7 @@
 {
   "author": "",
-  "name": "imin-name-resolver",
-  "description": "request service url",
+  "name": "node-socketio-test",
+  "description": "Chat Service",
   "version": "0.0.1",
   "repository": {
     "url": ""
